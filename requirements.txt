@@ -1,0 +1,5 @@
+rasterio
+keras
+pandas
+numpy
+jupyter
