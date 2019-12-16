@@ -40,25 +40,27 @@ class SentinelDataGenerator():
              satellite_image_resampling: Optional[Resampling] = None) -> Tuple[List[np.ndarray], List[np.ndarray]]:
 
         images_df = self.images_df(purpose)
-        images_df = images_df.sample(n=batch)
+        images_df = images_df.sample(frac=1)
 
-        satellite_images = []
-        landcover_masks = []
+        for batch_df in [images_df[i:i + batch] for i in range(0, images_df.shape[0], batch)]:
 
-        for _, row in images_df.iterrows():
-            row_id = row['id']
-            satellite_image_path = '../data/%s/%s/S/S_%s.tif' % (self.dataset, purpose.value, row_id)
-            landcover_mask_path = '../data/%s/%s/LC/LC_%s.tif' % (self.dataset, purpose.value, row_id)
+            satellite_images = []
+            landcover_masks = []
 
-            satellite_image = self.read_raster(satellite_image_path, self.satellite_image_shape,
-                                               satellite_image_resampling)
-            landcover_mask = self.read_raster(landcover_mask_path, self.landcover_mask_shape,
-                                              landcover_mask_resampling)
+            for _, row in batch_df.iterrows():
+                row_id = row['id']
+                satellite_image_path = '../data/%s/%s/S/S_%s.tif' % (self.dataset, purpose.value, row_id)
+                landcover_mask_path = '../data/%s/%s/LC/LC_%s.tif' % (self.dataset, purpose.value, row_id)
 
-            satellite_images.append(satellite_image)
-            landcover_masks.append(landcover_mask)
+                satellite_image = self.read_raster(satellite_image_path, self.satellite_image_shape,
+                                                   satellite_image_resampling)
+                landcover_mask = self.read_raster(landcover_mask_path, self.landcover_mask_shape,
+                                                  landcover_mask_resampling)
 
-        return satellite_images, landcover_masks
+                satellite_images.append(satellite_image)
+                landcover_masks.append(landcover_mask)
+
+            yield np.array(satellite_images), np.array(landcover_masks)
 
     # TODO: scale, normalize, standardize, pad to chanel
     @staticmethod

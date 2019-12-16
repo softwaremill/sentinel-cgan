@@ -6,9 +6,14 @@ from keras.layers import Input, Dropout, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Model
+from keras.optimizers import Optimizer, Adam
 
 
 class GenerativeNetwork():
+    optimizer: Optimizer
+
+    def __init__(self, optimizer: Optimizer = Adam(0.0005, 0.5)):
+        self.optimizer = optimizer
 
     def conv2d(self, initial_layer: Layer, filters: int, kernel_size: int = 4, strides: int = 2,
                momentum: Optional[float] = None):
@@ -27,7 +32,11 @@ class GenerativeNetwork():
         up_conv = Concatenate()([up_conv, skipped_layer])
         return up_conv
 
-    def build(self, input_shape: Tuple[int, int, int], init_filters: int, batch_normalization_momentum=0.8,
+    # TODO to init
+    def build(self, init_filters: int,
+              input_shape: Tuple[int, int, int],
+              output_channels: int,
+              batch_normalization_momentum=0.8,
               output_activation='tanh') -> Model:
         input = Input(shape=input_shape)
 
@@ -47,6 +56,10 @@ class GenerativeNetwork():
         u6 = self.deconv2d(u5, d1, init_filters)
         u7 = UpSampling2D(size=2)(u6)
 
-        output = Conv2D(input_shape[0], kernel_size=4, strides=1, padding='same', activation=output_activation)(u7)
+        output = Conv2D(output_channels, kernel_size=4, strides=1, padding='same', activation=output_activation)(u7)
+        model = Model(input, output)
 
-        return Model(input, output)
+        if compile:
+            model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])
+
+        return model
