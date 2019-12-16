@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from keras.engine import Layer
 from keras.layers import BatchNormalization
@@ -27,7 +27,8 @@ class GenerativeNetwork():
         up_conv = Concatenate()([up_conv, skipped_layer])
         return up_conv
 
-    def build(self, input_shape, init_filters, batch_normalization_momentum=0.8, output_activation='tanh') -> Model:
+    def build(self, input_shape: Tuple[int, int, int], init_filters: int, batch_normalization_momentum=0.8,
+              output_activation='tanh') -> Model:
         input = Input(shape=input_shape)
 
         d1 = self.conv2d(input, init_filters)

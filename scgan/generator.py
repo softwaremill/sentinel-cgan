@@ -60,8 +60,9 @@ class SentinelDataGenerator():
 
         return satellite_images, landcover_masks
 
-    # TODO: scale, normalize, standardize
-    def read_raster(self, path: str, out_shape: Tuple[int, int], resampling: Optional[Resampling] = None) -> np.ndarray:
+    # TODO: scale, normalize, standardize, pad to chanel
+    @staticmethod
+    def read_raster(path: str, out_shape: Tuple[int, int], resampling: Optional[Resampling] = None) -> np.ndarray:
         if resampling:
             raster = rasterio.open(path, dtype='int16').read(out_shape=out_shape, resampling=resampling)
         else:
