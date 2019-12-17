@@ -9,7 +9,6 @@ from keras.optimizers import Optimizer, Adam
 
 
 class DiscriminativeNetwork():
-    optimizer: Optimizer
 
     def __init__(self, optimizer: Optimizer = Adam(0.0005, 0.5)):
         self.optimizer = optimizer

@@ -8,13 +8,7 @@ from data.generator import SentinelDataGenerator
 
 
 class CGAN():
-    data_generator: SentinelDataGenerator
-    discriminative_network_model: Model
-    generative_network_model: Model
-    cgan_model: Model
-    input_shape: Tuple[int, int, int]
-    condition_shape: Tuple[int, int, int]
-
+    
     def __init__(self, data_generator: SentinelDataGenerator,
                  discriminative_network_model: Model,
                  generative_network_model: Model,
@@ -36,7 +30,7 @@ class CGAN():
         self.cgan_model.compile(loss=['mae', 'mse'], optimizer=optimizer)
 
     # TODO accumulate information, early stopping
-    def train(self, epochs: int = 5, batch: int = 1, pixel_range: Tuple[int, int] = (0, 9096)):
+    def train(self, epochs: int = 5, batch: int = 1, pixel_range: Tuple[int, int] = (0, 1)):
 
         for epoch in range(epochs):
             for i, (satellite_images, mask_images) in enumerate(self.data_generator.load(batch)):
@@ -64,4 +58,4 @@ class CGAN():
                 gn_loss_metrics = dict(zip(self.cgan_model.metrics_names, gn_loss))
 
                 print('epoch %s from %s (batch: %s) -> discriminator metrics: %s, generator metrics: %s' % (
-                    epoch, epochs, i, dn_loss_metrics, gn_loss_metrics))
+                    epoch + 1, epochs, i, dn_loss_metrics, gn_loss_metrics))
