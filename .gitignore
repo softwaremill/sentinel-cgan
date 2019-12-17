@@ -1,3 +1,4 @@
 figs
 .idea
 *-checkpoint.ipynb
+data/trial_*

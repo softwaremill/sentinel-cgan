@@ -18,9 +18,8 @@ if __name__ == '__main__':
     gn = GenerativeNetwork()
     gn_model = gn.build(init_filters=init_filters, input_shape=mask_shape, output_channels=output_channels)
     cgan = CGAN(data_generator, dn_model, gn_model, input_shape=satellite_image_shape, condition_shape=mask_shape)
-    cgan.cgan_model.summary()
 
-    cgan.train(epochs=1, batch=5)
+    cgan.train(epochs=20, batch=32)
 
     test_satellite_imgs, test_masks = next(data_generator.load(1, Purpose.TEST))
     predicted_satellite_images = cgan.generative_network_model.predict(test_masks)
