@@ -56,7 +56,7 @@ class GenerativeNetwork():
         u7 = UpSampling2D(size=2)(u6)
 
         output = Conv2D(output_channels, kernel_size=4, strides=1, padding='same', activation=output_activation)(u7)
-        model = Model(input, output)
+        model = Model(input, output, name='generator')
 
         if compile:
             model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])

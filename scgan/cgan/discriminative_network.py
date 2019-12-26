@@ -37,7 +37,7 @@ class DiscriminativeNetwork():
 
         output = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
-        model = Model([input, condition], output)
+        model = Model([input, condition], output, name='discriminator')
         model.trainable = trainable
 
         if compile:

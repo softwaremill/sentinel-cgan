@@ -20,16 +20,3 @@ if __name__ == '__main__':
     cgan = CGAN(data_generator, dn_model, gn_model, input_shape=satellite_image_shape, condition_shape=mask_shape)
 
     cgan.train(epochs=20, batch=32)
-
-    test_satellite_imgs, test_masks = next(data_generator.load(1, Purpose.TEST))
-    predicted_satellite_images = cgan.generative_network_model.predict(test_masks)
-
-    fig, axs = plt.subplots(1, 5, figsize=(21, 7))
-    for index, ax in enumerate(axs):
-        if index < 4:
-            ax.imshow(predicted_satellite_images[0][:, :, index], cmap='pink')
-            ax.set_title('channel %s' % index)
-        else:
-            ax.imshow(test_masks[0][:, :, 0], cmap='pink')
-            ax.set_title('mask')
-    plt.show()
