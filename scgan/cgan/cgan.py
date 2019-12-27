@@ -1,9 +1,10 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from keras import Model, Input
+from keras.callbacks import History, BaseLogger, ProgbarLogger, CallbackList, Callback
 from keras.optimizers import Adam, Optimizer
-from keras.utils import generic_utils as keras_generic_utils
+
 from data.generator import SentinelDataGenerator
 from util.plotter import Plotter
 
@@ -29,21 +30,47 @@ class CGAN():
 
         self.cgan_model = Model(inputs=[input, condition], outputs=[validatable, artificial], name='sentinel-cgan')
         self.cgan_model.compile(loss=['mae', 'mse'], optimizer=optimizer)
+        self.cgan_model.stop_training = False
         self.plotter = Plotter(generative_network_model, data_generator)
 
-    # TODO accumulate information, early stopping
-    def train(self, epochs: int = 5, batch: int = 1, pixel_range: Tuple[int, int] = (0, 1)):
+    def fit(self, epochs: int = 1, batch: int = 1, pixel_range: Tuple[int, int] = (0, 1),
+            callbacks: List[Callback] = None):
 
         processed_images_count = len(self.data_generator.images_df())
 
+        callback_metrics = ['discriminator_acc', 'discriminator_loss', 'generator_acc', 'generator_loss']
+        history = History()
+
+        _callbacks = [
+            BaseLogger(stateful_metrics=callback_metrics),
+            ProgbarLogger(count_mode='steps', stateful_metrics=callback_metrics),
+            history
+        ]
+
+        _callbacks = _callbacks + callbacks if callbacks else _callbacks
+
+        callbacks = CallbackList(_callbacks)
+        callbacks.set_model(self.cgan_model)
+        callbacks.set_params({
+            'epochs': epochs,
+            'steps': int(processed_images_count / batch) + (processed_images_count % batch > 0),
+            'samples': processed_images_count,
+            'verbose': True,
+            'do_validation': False,
+            'metrics': callback_metrics
+        })
+        callbacks.on_train_begin()
+
         for epoch in range(epochs):
 
-            progress_bar = keras_generic_utils.Progbar(processed_images_count)
-            epoch_number = epoch + 1
-            print('\nepoch %s from %s' % (epoch_number, epochs))
+            callbacks.on_epoch_begin(epoch)
+            epoch_logs = {}
 
             for i, (satellite_images, mask_images) in enumerate(self.data_generator.load(batch)):
                 effective_batch_size = len(satellite_images)
+
+                batch_logs = {'batch': i, 'size': effective_batch_size}
+                callbacks.on_batch_begin(i, batch_logs)
 
                 def form_base(bound):
                     modifier = int(self.input_shape[0] / 2 ** 4)
@@ -65,9 +92,22 @@ class CGAN():
                 gn_loss = self.cgan_model.train_on_batch(x=[satellite_images, mask_images],
                                                          y=[artificial_base, satellite_images])
 
-                dn_loss_metrics = list(zip(self.discriminative_network_model.metrics_names, dn_loss))
-                gn_loss_metrics = list(zip(self.cgan_model.metrics_names, gn_loss))
+                epoch_logs.update({
+                    'discriminator_acc': dn_loss[1],
+                    'discriminator_loss': dn_loss[0],
+                    'generator_acc': gn_loss[1],
+                    'generator_loss': gn_loss[0]
+                })
 
-                progress_bar.add(effective_batch_size, values=dn_loss_metrics + gn_loss_metrics)
+                callbacks.on_batch_end(i)
+                if self.cgan_model.stop_training:
+                    break
 
-            self.plotter.plot(epoch_number)
+            self.plotter.plot_epoch_result(epoch)
+            callbacks.on_epoch_end(epoch, epoch_logs)
+            if self.cgan_model.stop_training:
+                break
+
+        callbacks.on_train_end()
+        self.plotter.plot_history(history)
+        return history
