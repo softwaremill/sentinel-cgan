@@ -26,7 +26,10 @@ class CGAN():
         input = Input(shape=input_shape)
         condition = Input(shape=condition_shape)
         artificial = self.generative_network_model(condition)
-        validatable = self.discriminative_network_model([artificial, condition])
+        frozen_discriminative_network_model = Model(inputs=discriminative_network_model.inputs,
+                                                    outputs=discriminative_network_model.outputs)
+        frozen_discriminative_network_model.trainable = False
+        validatable = frozen_discriminative_network_model([artificial, condition])
 
         self.cgan_model = Model(inputs=[input, condition], outputs=[validatable, artificial], name='sentinel-cgan')
         self.cgan_model.compile(loss=['mae', 'mse'], optimizer=optimizer)
@@ -34,7 +37,7 @@ class CGAN():
         self.plotter = Plotter(generative_network_model, data_generator)
 
     def fit(self, epochs: int = 1, batch: int = 1, pixel_range: Tuple[int, int] = (0, 1),
-            callbacks: List[Callback] = None):
+            callbacks: List[Callback] = None) -> History:
 
         processed_images_count = len(self.data_generator.images_df())
 

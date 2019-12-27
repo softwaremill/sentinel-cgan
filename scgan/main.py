@@ -14,7 +14,8 @@ if __name__ == '__main__':
     dn_model = dn.build(init_filters=init_filters, input_shape=satellite_image_shape, condition_shape=mask_shape)
 
     gn = GenerativeNetwork()
-    gn_model = gn.build(init_filters=init_filters, input_shape=mask_shape, output_channels=output_channels)
+    gn_model = gn.build(init_filters=init_filters, input_shape=mask_shape, output_channels=output_channels,
+                        compile=False)
     cgan = CGAN(data_generator, dn_model, gn_model, input_shape=satellite_image_shape, condition_shape=mask_shape)
 
     history = cgan.fit(epochs=5, batch=16)

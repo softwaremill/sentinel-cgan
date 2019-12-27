@@ -24,8 +24,7 @@ class DiscriminativeNetwork():
               input_shape: Tuple[int, int, int],
               condition_shape: Tuple[int, int, int],
               batch_normalization_momentum=0.8,
-              trainable: bool = False,
-              compile: bool = True):
+              compile: bool = True) -> Model:
         input = Input(shape=input_shape)
         condition = Input(shape=condition_shape)
         combination = Concatenate(axis=-1)([input, condition])
@@ -38,7 +37,6 @@ class DiscriminativeNetwork():
         output = Conv2D(1, kernel_size=4, strides=1, padding='same')(d4)
 
         model = Model([input, condition], output, name='discriminator')
-        model.trainable = trainable
 
         if compile:
             model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])

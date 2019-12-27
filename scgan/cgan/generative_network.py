@@ -36,7 +36,8 @@ class GenerativeNetwork():
               input_shape: Tuple[int, int, int],
               output_channels: int,
               batch_normalization_momentum=0.8,
-              output_activation='tanh') -> Model:
+              output_activation='tanh',
+              compile: bool = True) -> Model:
         input = Input(shape=input_shape)
 
         d1 = self.conv2d(input, init_filters)
