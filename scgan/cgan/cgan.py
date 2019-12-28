@@ -41,7 +41,12 @@ class CGAN():
 
         processed_images_count = len(self.data_generator.images_df())
 
-        callback_metrics = ['discriminator_acc', 'discriminator_loss', 'generator_acc', 'generator_loss']
+        callback_metrics = [
+            'discriminator_avg_acc', 'discriminator_avg_acc',
+            'discriminator_artificial_acc', 'discriminator_artificial_acc',
+            'discriminator_real_acc', 'discriminator_real_acc',
+            'generator_loss'
+        ]
         history = History()
 
         _callbacks = [
@@ -91,14 +96,17 @@ class CGAN():
                     x=[artificial_satellite_image, mask_images],
                     y=artificial_base)
 
-                dn_loss = np.add(real_dn_loss, artificial_dn_loss) / 2
+                dn_avg_loss = np.add(real_dn_loss, artificial_dn_loss) / 2
                 gn_loss = self.cgan_model.train_on_batch(x=[satellite_images, mask_images],
                                                          y=[artificial_base, satellite_images])
 
                 epoch_logs.update({
-                    'discriminator_acc': dn_loss[1],
-                    'discriminator_loss': dn_loss[0],
-                    'generator_acc': gn_loss[1],
+                    'discriminator_avg_acc': dn_avg_loss[1],
+                    'discriminator_avg_loss': dn_avg_loss[0],
+                    'discriminator_artificial_acc': artificial_dn_loss[1],
+                    'discriminator_artificial_loss': artificial_dn_loss[0],
+                    'discriminator_real_acc': real_dn_loss[1],
+                    'discriminator_real_loss': real_dn_loss[0],
                     'generator_loss': gn_loss[0]
                 })
 
