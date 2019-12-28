@@ -11,7 +11,7 @@ from keras.optimizers import Optimizer, Adam
 
 class GenerativeNetwork():
 
-    def __init__(self, optimizer: Optimizer = Adam(0.0005, 0.5)):
+    def __init__(self, optimizer: Optimizer = Adam(0.0002, 0.5)):
         self.optimizer = optimizer
 
     def conv2d(self, initial_layer: Layer, filters: int, kernel_size: int = 4, strides: int = 2,
@@ -19,10 +19,11 @@ class GenerativeNetwork():
         down_conv = Conv2D(filters, kernel_size=kernel_size, strides=strides, padding='same')(initial_layer)
         down_conv = LeakyReLU(alpha=0.2)(down_conv)
         down_conv = BatchNormalization(momentum=momentum)(down_conv) if momentum else down_conv
+
         return down_conv
 
     def deconv2d(self, initial_layer: Layer, skipped_layer: Layer, filters: int, kernel_size=4,
-                 dropout_rate: Optional[float] = None, strides=1, momentum: float = 0.8, activation='relu'):
+                 dropout_rate: Optional[float] = None, strides=1, momentum: float = 0.8, activation='elu'):
         up_conv = UpSampling2D(size=2)(initial_layer)
         up_conv = Conv2D(filters, kernel_size=kernel_size, strides=strides, padding='same', activation=activation)(
             up_conv)
@@ -36,7 +37,8 @@ class GenerativeNetwork():
               input_shape: Tuple[int, int, int],
               output_channels: int,
               batch_normalization_momentum=0.8,
-              output_activation='tanh') -> Model:
+              output_activation='tanh',
+              compile: bool = True) -> Model:
         input = Input(shape=input_shape)
 
         d1 = self.conv2d(input, init_filters)
@@ -56,7 +58,7 @@ class GenerativeNetwork():
         u7 = UpSampling2D(size=2)(u6)
 
         output = Conv2D(output_channels, kernel_size=4, strides=1, padding='same', activation=output_activation)(u7)
-        model = Model(input, output)
+        model = Model(input, output, name='generator')
 
         if compile:
             model.compile(optimizer=self.optimizer, loss='mse', metrics=['accuracy'])

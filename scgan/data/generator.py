@@ -12,7 +12,8 @@ from sklearn.preprocessing import MinMaxScaler
 class Purpose(Enum):
     TRAIN = 'train'
     TEST = 'test'
-    VAL = 'val'
+    VAL = 'plot'
+    PLOT = 'plot'
 
 
 class SentinelDataGenerator():
@@ -41,10 +42,11 @@ class SentinelDataGenerator():
         return pd.read_csv('../data/%s/%s/%s' % (self.dataset, purpose.value, self.descriptor))
 
     # TODO: augment data
-    def load(self, batch: int = 1, purpose: Purpose = Purpose.TRAIN) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+    def load(self, batch: int = 1, purpose: Purpose = Purpose.TRAIN,
+             random_state=None) -> Tuple[List[np.ndarray], List[np.ndarray]]:
 
         images_df = self.images_df(purpose)
-        images_df = images_df.sample(frac=1)
+        images_df = images_df.sample(frac=1, random_state=random_state)
 
         for batch_df in [images_df[i:i + batch] for i in range(0, images_df.shape[0], batch)]:
 
