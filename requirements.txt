@@ -5,3 +5,4 @@ numpy
 jupyter
 matplotlib
 scikit-learn
+GDAL
