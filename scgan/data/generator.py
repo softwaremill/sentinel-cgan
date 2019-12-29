@@ -18,13 +18,12 @@ class Purpose(Enum):
 
 class SentinelDataGenerator():
 
-    # TODO: validate 'data' directory structure
     def __init__(self,
                  dataset: str,
                  descriptor: str = 'data_descriptor.csv',
                  landcover_mask_shape=(1, 128, 128),
                  satellite_image_shape=(4, 128, 128),
-                 feature_range: Tuple[int, int] = (-1, 1),
+                 feature_range: Tuple[int, int] = (0, 1),
                  landcover_mask_resampling: Optional[Resampling] = None,
                  satellite_image_resampling: Optional[Resampling] = None,
                  clip: Optional[int] = None
@@ -69,7 +68,7 @@ class SentinelDataGenerator():
             yield np.array(satellite_images), np.array(landcover_masks)
 
     @staticmethod
-    def read_raster(path: str, out_shape: Tuple[int, int], feature_range: Tuple[int, int] = (-1, 1),
+    def read_raster(path: str, out_shape: Tuple[int, int], feature_range: Tuple[int, int],
                     resampling: Optional[Resampling] = None,
                     clip: Optional[int] = None) -> np.ndarray:
 

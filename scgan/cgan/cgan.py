@@ -16,7 +16,7 @@ class CGAN():
                  generative_network_model: Model,
                  input_shape: Tuple[int, int, int],
                  condition_shape: Tuple[int, int, int],
-                 optimizer: Optimizer = Adam(0.0005, 0.5)):
+                 optimizer: Optimizer = Adam(0.0002, 0.5)):
         self.data_generator = data_generator
         self.discriminative_network_model = discriminative_network_model
         self.generative_network_model = generative_network_model
@@ -26,18 +26,24 @@ class CGAN():
         input = Input(shape=input_shape)
         condition = Input(shape=condition_shape)
         artificial = self.generative_network_model(condition)
-        frozen_discriminative_network_model = Model(inputs=discriminative_network_model.inputs,
-                                                    outputs=discriminative_network_model.outputs)
+        frozen_discriminative_network_model = Model(
+            inputs=discriminative_network_model.inputs,
+            outputs=discriminative_network_model.outputs
+        )
         frozen_discriminative_network_model.trainable = False
-        validatable = frozen_discriminative_network_model([artificial, condition])
+        discrimination_result = frozen_discriminative_network_model([artificial, condition])
 
-        self.cgan_model = Model(inputs=[input, condition], outputs=[validatable, artificial], name='sentinel-cgan')
+        self.cgan_model = Model(
+            inputs=[input, condition],
+            outputs=[discrimination_result, artificial],
+            name='sentinel-cgan'
+        )
         self.cgan_model.compile(loss=['mae', 'mse'], optimizer=optimizer)
         self.cgan_model.stop_training = False
         self.plotter = Plotter(generative_network_model, data_generator)
 
-    def fit(self, epochs: int = 1, batch: int = 1, pixel_range: Tuple[int, int] = (0, 1),
-            callbacks: List[Callback] = None) -> History:
+    def fit(self, epochs: int = 1, batch: int = 1, min_bound: int = 0, max_bound: int = 1,
+            callbacks: List[Callback] = None, apply_noise: bool = False) -> History:
 
         processed_images_count = len(self.data_generator.images_df())
 
@@ -73,8 +79,12 @@ class CGAN():
             callbacks.on_epoch_begin(epoch)
             epoch_logs = {}
 
-            for i, (satellite_images, mask_images) in enumerate(self.data_generator.load(batch)):
-                effective_batch_size = len(satellite_images)
+            epoch_artificial_dn_loss = []
+            epoch_real_dn_loss = []
+            epoch_gn_loss = []
+
+            for i, (real_satellite_images, mask_images) in enumerate(self.data_generator.load(batch)):
+                effective_batch_size = len(real_satellite_images)
 
                 batch_logs = {'batch': i, 'size': effective_batch_size}
                 callbacks.on_batch_begin(i, batch_logs)
@@ -83,32 +93,48 @@ class CGAN():
                     modifier = int(self.input_shape[0] / 2 ** 4)
                     return np.full((effective_batch_size,) + (modifier, modifier, 1), bound)
 
-                artificial_base = form_base(pixel_range[0])
-                validatable_base = form_base(pixel_range[1])
+                artificial_base = form_base(min_bound)
+                real_base = form_base(max_bound)
 
-                artificial_satellite_image = self.generative_network_model.predict(mask_images)
+                artificial_satellite_images = self.generative_network_model.predict(mask_images)
 
-                real_dn_loss = self.discriminative_network_model.train_on_batch(x=[satellite_images, mask_images],
-                                                                                y=validatable_base)
+                if apply_noise:
+                    artificial_satellite_images += np.random.random(artificial_satellite_images.shape)
+                    real_satellite_images += np.random.random(real_satellite_images.shape)
 
-                artificial_dn_loss = self.discriminative_network_model.train_on_batch(
-                    x=[artificial_satellite_image, mask_images],
-                    y=artificial_base)
+                batch_real_dn_loss = self.discriminative_network_model.train_on_batch(
+                    x=[real_satellite_images, mask_images],
+                    y=real_base
+                )
+                epoch_real_dn_loss.append(batch_real_dn_loss)
 
-                gn_loss = self.cgan_model.train_on_batch(x=[satellite_images, mask_images],
-                                                         y=[validatable_base, satellite_images])
+                batch_artificial_dn_loss = self.discriminative_network_model.train_on_batch(
+                    x=[artificial_satellite_images, mask_images],
+                    y=artificial_base
+                )
+                epoch_artificial_dn_loss.append(batch_artificial_dn_loss)
 
-                epoch_logs.update({
-                    'discriminator_artificial_acc': artificial_dn_loss[1],
-                    'discriminator_artificial_loss': artificial_dn_loss[0],
-                    'discriminator_real_acc': real_dn_loss[1],
-                    'discriminator_real_loss': real_dn_loss[0],
-                    'generator_loss': gn_loss[0]
-                })
+                batch_gn_loss = self.cgan_model.train_on_batch(
+                    x=[real_satellite_images, mask_images],
+                    y=[real_base, real_satellite_images]
+                )
+                epoch_gn_loss.append(batch_gn_loss)
 
                 callbacks.on_batch_end(i)
                 if self.cgan_model.stop_training:
                     break
+
+            epoch_artificial_dn_loss = np.mean(epoch_artificial_dn_loss, axis=0)
+            epoch_real_dn_loss = np.mean(epoch_real_dn_loss, axis=0)
+            epoch_gn_loss = np.mean(epoch_gn_loss, axis=0)
+
+            epoch_logs.update({
+                'discriminator_artificial_acc': epoch_artificial_dn_loss[1],
+                'discriminator_artificial_loss': epoch_artificial_dn_loss[0],
+                'discriminator_real_acc': epoch_real_dn_loss[1],
+                'discriminator_real_loss': epoch_real_dn_loss[0],
+                'generator_loss': epoch_gn_loss[0]
+            })
 
             self.plotter.plot_epoch_result(epoch)
             callbacks.on_epoch_end(epoch, epoch_logs)
