@@ -7,6 +7,7 @@ import rasterio
 from rasterio.enums import Resampling
 from rasterio.plot import reshape_as_image
 from sklearn.preprocessing import MinMaxScaler
+from pathlib import Path
 
 
 class Purpose(Enum):
@@ -23,7 +24,7 @@ class SentinelDataGenerator():
                  descriptor: str = 'data_descriptor.csv',
                  landcover_mask_shape=(1, 128, 128),
                  satellite_image_shape=(4, 128, 128),
-                 feature_range: Tuple[int, int] = (0, 1),
+                 feature_range: Tuple[int, int] = (-1, 1),
                  landcover_mask_resampling: Optional[Resampling] = None,
                  satellite_image_resampling: Optional[Resampling] = None,
                  clip: Optional[int] = None
@@ -38,7 +39,8 @@ class SentinelDataGenerator():
         self.clip = clip
 
     def images_df(self, purpose: Purpose = Purpose.TRAIN):
-        return pd.read_csv('../data/%s/%s/%s' % (self.dataset, purpose.value, self.descriptor))
+        path = Path('../data/%s/%s/%s' % (self.dataset, purpose.value, self.descriptor)).resolve()
+        return pd.read_csv(path)
 
     # TODO: augment data
     def load(self, batch: int = 1, purpose: Purpose = Purpose.TRAIN,
@@ -54,8 +56,13 @@ class SentinelDataGenerator():
 
             for _, row in batch_df.iterrows():
                 row_id = row['id']
-                satellite_image_path = '../data/%s/%s/S/S_%s.tif' % (self.dataset, purpose.value, row_id)
-                landcover_mask_path = '../data/%s/%s/LC/LC_%s.tif' % (self.dataset, purpose.value, row_id)
+                satellite_image_path = Path(
+                    '../data/%s/%s/S/S_%s.tif' % (self.dataset, purpose.value, row_id)
+                ).resolve()
+
+                landcover_mask_path = Path(
+                    '../data/%s/%s/LC/LC_%s.tif' % (self.dataset, purpose.value, row_id)
+                ).resolve()
 
                 satellite_image = self.read_raster(satellite_image_path, self.satellite_image_shape, self.feature_range,
                                                    self.satellite_image_resampling)

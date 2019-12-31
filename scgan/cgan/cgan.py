@@ -43,7 +43,7 @@ class CGAN():
         self.plotter = Plotter(generative_network_model, data_generator)
 
     def fit(self, epochs: int = 1, batch: int = 1, min_bound: int = 0, max_bound: int = 1,
-            callbacks: List[Callback] = None, apply_noise: bool = False) -> History:
+            callbacks: List[Callback] = None) -> History:
 
         processed_images_count = len(self.data_generator.images_df())
 
@@ -98,10 +98,6 @@ class CGAN():
 
                 artificial_satellite_images = self.generative_network_model.predict(mask_images)
 
-                if apply_noise:
-                    artificial_satellite_images += np.random.random(artificial_satellite_images.shape)
-                    real_satellite_images += np.random.random(real_satellite_images.shape)
-
                 batch_real_dn_loss = self.discriminative_network_model.train_on_batch(
                     x=[real_satellite_images, mask_images],
                     y=real_base
@@ -136,7 +132,7 @@ class CGAN():
                 'generator_loss': epoch_gn_loss[0]
             })
 
-            self.plotter.plot_epoch_result(epoch)
+            self.plotter.plot_epoch_result(epoch, self.input_shape[2])
             callbacks.on_epoch_end(epoch, epoch_logs)
             if self.cgan_model.stop_training:
                 break

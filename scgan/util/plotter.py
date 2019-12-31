@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras import Model
 from keras.callbacks import History
+from pathlib import Path, PosixPath
 
 from data.generator import Purpose, SentinelDataGenerator
 
@@ -15,8 +16,8 @@ class Plotter:
     def __init__(self, model: Model, data_generator: SentinelDataGenerator):
         self.model = model
         self.data_generator = data_generator
-        self.out_dir = '../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
-        os.mkdir(self.out_dir)
+        self.out_dir = Path('../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f')).resolve()
+        os.makedirs(self.out_dir)
 
         print('Plotter has been created (dir: %s)' % self.out_dir)
 
@@ -59,7 +60,7 @@ class Plotter:
             if row == 0:
                 ax.set_title('mask')
 
-        plt.savefig('%s/epoch_%s.png' % (self.out_dir, epoch))
+        plt.savefig(Path('%s/epoch_%s.png' % (self.out_dir, epoch + 1)))
         plt.close()
 
     def plot_history(self, history: History):
@@ -76,7 +77,7 @@ class Plotter:
         plt.xlabel('Epoch')
         plt.legend(['Discriminator accuracy (artificial)', 'Discriminator accuracy (real)',
                     'Discriminator accuracy (diff)'], loc='upper left')
-        plt.savefig('%s/accuracy.png' % self.out_dir)
+        plt.savefig(Path('%s/accuracy.png' % self.out_dir))
 
         plt.clf()
 
@@ -87,6 +88,6 @@ class Plotter:
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Discriminator loss (artificial)', 'Discriminator loss (real)', 'Generator loss'], loc='upper left')
-        plt.savefig('%s/loss.png' % self.out_dir)
+        plt.savefig(Path('%s/loss.png' % self.out_dir))
 
         plt.close()
