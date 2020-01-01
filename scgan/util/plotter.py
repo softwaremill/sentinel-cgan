@@ -58,7 +58,12 @@ class Plotter:
             ax = fig.add_subplot(spec[row, next_col_position])
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-            ax.imshow(test_masks[row][:, :, 0], cmap='pink')
+
+            if test_masks[row].shape[2] == 3:
+                ax.imshow(test_masks[row][:, :, 0:3])
+            else:
+                ax.imshow(test_masks[row][:, :, 0], cmap='pink')
+
             if row == 0:
                 ax.set_title('mask')
 

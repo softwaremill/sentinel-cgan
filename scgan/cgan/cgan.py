@@ -5,13 +5,13 @@ from keras import Model, Input
 from keras.callbacks import History, BaseLogger, ProgbarLogger, CallbackList, Callback
 from keras.optimizers import Adam, Optimizer
 
-from data.data_generator import SentinelDataGenerator
+from data.data_generator import DataGenerator
 from util.plotter import Plotter
 
 
 class CGAN():
 
-    def __init__(self, data_generator: SentinelDataGenerator,
+    def __init__(self, data_generator: DataGenerator,
                  discriminative_network_model: Model,
                  generative_network_model: Model,
                  input_shape: Tuple[int, int, int],
@@ -41,7 +41,7 @@ class CGAN():
         self.cgan_model.stop_training = False
         self.plotter = Plotter(generative_network_model, data_generator)
 
-    def fit(self, epochs: int = 1, batch: int = 1, artificial_label: int = 0, real_label: int = 1,
+    def fit(self, epochs: int = 1, batch: int = 1, artificial_label: int = 0.9, real_label: int = 0,
             callbacks: List[Callback] = None) -> History:
 
         processed_images_count = len(self.data_generator.images_df())

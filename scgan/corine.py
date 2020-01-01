@@ -1,11 +1,7 @@
-import os
-
-from rasterio.enums import Resampling
-
-from cgan.cgan import CGAN
-from cgan.discriminative_network import DiscriminativeNetwork
-from cgan.generative_network import GenerativeNetwork
-from data.data_generator import SentinelDataGenerator
+from scgan.cgan.cgan import CGAN
+from scgan.cgan.discriminative_network import DiscriminativeNetwork
+from scgan.cgan.generative_network import GenerativeNetwork
+from scgan.data.data_generator import SentinelDataGenerator
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
