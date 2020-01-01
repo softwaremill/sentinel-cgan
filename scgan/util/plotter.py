@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
@@ -7,20 +8,22 @@ import numpy as np
 from keras import Model
 from keras.callbacks import History
 
-from data.generator import Purpose, SentinelDataGenerator
+from data.data_generator import Purpose, DataGenerator
 
 
 class Plotter:
 
-    def __init__(self, model: Model, data_generator: SentinelDataGenerator):
+    def __init__(self, model: Model, data_generator: DataGenerator):
         self.model = model
         self.data_generator = data_generator
-        self.out_dir = '../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')
-        os.mkdir(self.out_dir)
+        self.out_dir = Path('../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f')).resolve()
+        os.makedirs(self.out_dir)
 
         print('Plotter has been created (dir: %s)' % self.out_dir)
 
     def plot_epoch_result(self, epoch: int, channels: int = 4):
+        print('\nPlotting epoch %s results' % (epoch + 1))
+
         samples_count = len(self.data_generator.images_df(Purpose.PLOT))
 
         test_satellite_images, test_masks = next(self.data_generator.load(samples_count, Purpose.PLOT, random_state=0))
@@ -55,11 +58,16 @@ class Plotter:
             ax = fig.add_subplot(spec[row, next_col_position])
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-            ax.imshow(test_masks[row][:, :, 0], cmap='pink')
+
+            if test_masks[row].shape[2] == 3:
+                ax.imshow(test_masks[row][:, :, 0:3])
+            else:
+                ax.imshow(test_masks[row][:, :, 0], cmap='pink')
+
             if row == 0:
                 ax.set_title('mask')
 
-        plt.savefig('%s/epoch_%s.png' % (self.out_dir, epoch))
+        plt.savefig(Path('%s/epoch_%s.png' % (self.out_dir, epoch + 1)))
         plt.close()
 
     def plot_history(self, history: History):
@@ -76,7 +84,7 @@ class Plotter:
         plt.xlabel('Epoch')
         plt.legend(['Discriminator accuracy (artificial)', 'Discriminator accuracy (real)',
                     'Discriminator accuracy (diff)'], loc='upper left')
-        plt.savefig('%s/accuracy.png' % self.out_dir)
+        plt.savefig(Path('%s/accuracy.png' % self.out_dir))
 
         plt.clf()
 
@@ -87,6 +95,6 @@ class Plotter:
         plt.ylabel('Loss')
         plt.xlabel('Epoch')
         plt.legend(['Discriminator loss (artificial)', 'Discriminator loss (real)', 'Generator loss'], loc='upper left')
-        plt.savefig('%s/loss.png' % self.out_dir)
+        plt.savefig(Path('%s/loss.png' % self.out_dir))
 
         plt.close()
