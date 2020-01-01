@@ -1,5 +1,4 @@
 figs/out
 .idea
 *-checkpoint.ipynb
-data/trial_*
-data/corine
+./data

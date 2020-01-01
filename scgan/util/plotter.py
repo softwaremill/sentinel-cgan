@@ -8,7 +8,7 @@ from keras import Model
 from keras.callbacks import History
 from pathlib import Path, PosixPath
 
-from data.generator import Purpose, SentinelDataGenerator
+from data.data_generator import Purpose, SentinelDataGenerator
 
 
 class Plotter:
@@ -22,6 +22,8 @@ class Plotter:
         print('Plotter has been created (dir: %s)' % self.out_dir)
 
     def plot_epoch_result(self, epoch: int, channels: int = 4):
+        print('\nPlotting epoch %s results' % (epoch + 1))
+
         samples_count = len(self.data_generator.images_df(Purpose.PLOT))
 
         test_satellite_images, test_masks = next(self.data_generator.load(samples_count, Purpose.PLOT, random_state=0))

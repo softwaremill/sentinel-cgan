@@ -5,7 +5,7 @@ from keras import Model, Input
 from keras.callbacks import History, BaseLogger, ProgbarLogger, CallbackList, Callback
 from keras.optimizers import Adam, Optimizer
 
-from data.generator import SentinelDataGenerator
+from data.data_generator import SentinelDataGenerator
 from util.plotter import Plotter
 
 
@@ -23,7 +23,6 @@ class CGAN():
         self.input_shape = input_shape
         self.condition_shape = condition_shape
 
-        input = Input(shape=input_shape)
         condition = Input(shape=condition_shape)
         artificial = self.generative_network_model(condition)
         frozen_discriminative_network_model = Model(
@@ -34,15 +33,15 @@ class CGAN():
         discrimination_result = frozen_discriminative_network_model([artificial, condition])
 
         self.cgan_model = Model(
-            inputs=[input, condition],
+            inputs=[condition],
             outputs=[discrimination_result, artificial],
             name='sentinel-cgan'
         )
-        self.cgan_model.compile(loss=['mae', 'mse'], optimizer=optimizer)
+        self.cgan_model.compile(loss=['binary_crossentropy', 'mae'], optimizer=optimizer, loss_weights=[1, 100])
         self.cgan_model.stop_training = False
         self.plotter = Plotter(generative_network_model, data_generator)
 
-    def fit(self, epochs: int = 1, batch: int = 1, min_bound: int = 0, max_bound: int = 1,
+    def fit(self, epochs: int = 1, batch: int = 1, artificial_label: int = 0, real_label: int = 1,
             callbacks: List[Callback] = None) -> History:
 
         processed_images_count = len(self.data_generator.images_df())
@@ -90,11 +89,11 @@ class CGAN():
                 callbacks.on_batch_begin(i, batch_logs)
 
                 def form_base(bound):
-                    modifier = int(self.input_shape[0] / 2 ** 4)
+                    modifier = int(self.input_shape[0] / 2 ** 5)
                     return np.full((effective_batch_size,) + (modifier, modifier, 1), bound)
 
-                artificial_base = form_base(min_bound)
-                real_base = form_base(max_bound)
+                artificial_base = form_base(artificial_label)
+                real_base = form_base(real_label)
 
                 artificial_satellite_images = self.generative_network_model.predict(mask_images)
 
@@ -111,7 +110,7 @@ class CGAN():
                 epoch_artificial_dn_loss.append(batch_artificial_dn_loss)
 
                 batch_gn_loss = self.cgan_model.train_on_batch(
-                    x=[real_satellite_images, mask_images],
+                    x=[mask_images],
                     y=[real_base, real_satellite_images]
                 )
                 epoch_gn_loss.append(batch_gn_loss)

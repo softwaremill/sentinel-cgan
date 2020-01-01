@@ -42,7 +42,6 @@ class SentinelDataGenerator():
         path = Path('../data/%s/%s/%s' % (self.dataset, purpose.value, self.descriptor)).resolve()
         return pd.read_csv(path)
 
-    # TODO: augment data
     def load(self, batch: int = 1, purpose: Purpose = Purpose.TRAIN,
              random_state=None) -> Tuple[List[np.ndarray], List[np.ndarray]]:
 

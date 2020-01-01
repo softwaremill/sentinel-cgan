@@ -5,7 +5,7 @@ from rasterio.enums import Resampling
 from cgan.cgan import CGAN
 from cgan.discriminative_network import DiscriminativeNetwork
 from cgan.generative_network import GenerativeNetwork
-from data.generator import SentinelDataGenerator
+from data.data_generator import SentinelDataGenerator
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
@@ -25,6 +25,6 @@ if __name__ == '__main__':
                         compile=False, dropout_rate=0.5)
     cgan = CGAN(data_generator, dn_model, gn_model, input_shape=satellite_image_shape, condition_shape=mask_shape)
 
-    history = cgan.fit(epochs=5, batch=5)
+    history = cgan.fit(epochs=20, batch=5)
 
     print('Sentinel CGAN has been fitted')
