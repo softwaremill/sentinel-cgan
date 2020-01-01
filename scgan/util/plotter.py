@@ -1,19 +1,19 @@
 import os
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 from keras import Model
 from keras.callbacks import History
-from pathlib import Path, PosixPath
 
-from data.data_generator import Purpose, SentinelDataGenerator
+from data.data_generator import Purpose, DataGenerator
 
 
 class Plotter:
 
-    def __init__(self, model: Model, data_generator: SentinelDataGenerator):
+    def __init__(self, model: Model, data_generator: DataGenerator):
         self.model = model
         self.data_generator = data_generator
         self.out_dir = Path('../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f')).resolve()

@@ -41,7 +41,7 @@ class CGAN():
         self.cgan_model.stop_training = False
         self.plotter = Plotter(generative_network_model, data_generator)
 
-    def fit(self, epochs: int = 1, batch: int = 1, artificial_label: int = 0.9, real_label: int = 0,
+    def fit(self, epochs: int = 1, batch: int = 1, artificial_label: int = 0, real_label: int = 1,
             callbacks: List[Callback] = None) -> History:
 
         processed_images_count = len(self.data_generator.images_df())
