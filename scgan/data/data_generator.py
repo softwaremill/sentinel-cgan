@@ -19,6 +19,7 @@ class Purpose(Enum):
 
 
 class DataGenerator:
+    dataset: str = 'sample'
 
     def images_df(self, purpose: Purpose = Purpose.TRAIN) -> pd.DataFrame:
         pass

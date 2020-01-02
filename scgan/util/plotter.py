@@ -16,7 +16,9 @@ class Plotter:
     def __init__(self, model: Model, data_generator: DataGenerator):
         self.model = model
         self.data_generator = data_generator
-        self.out_dir = Path('../figs/out/%s' % datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f')).resolve()
+        self.out_dir = Path(
+            '../figs/out/%s/%s' % (data_generator.dataset, datetime.now().strftime('%Y-%m-%dT%H-%M-%S.%f'))
+        ).resolve()
         os.makedirs(self.out_dir)
 
         print('Plotter has been created (dir: %s)' % self.out_dir)
