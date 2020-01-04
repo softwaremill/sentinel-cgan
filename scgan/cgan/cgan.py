@@ -133,6 +133,7 @@ class CGAN():
 
             self.plotter.plot_epoch_result(epoch, self.input_shape[2])
             callbacks.on_epoch_end(epoch, epoch_logs)
+            self.plotter.plot_history(history)
             if self.cgan_model.stop_training:
                 break
 

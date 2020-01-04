@@ -16,8 +16,8 @@ class GenerativeNetwork():
         self.optimizer = optimizer
 
     def conv2d(self, initial_layer: Layer, filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int],
-               momentum: Optional[float] = 0.99, padding: str = 'same', lrelu_alpha=0.2):
-        down_conv = Conv2D(filters, kernel_size, strides=strides, padding=padding,
+               momentum: Optional[float] = 0.99, lrelu_alpha=0.2):
+        down_conv = Conv2D(filters, kernel_size, strides=strides, padding='same',
                            kernel_initializer=RandomNormal(stddev=0.02))(initial_layer)
         down_conv = BatchNormalization(momentum=momentum)(down_conv) if momentum else down_conv
         down_conv = LeakyReLU(alpha=lrelu_alpha)(down_conv)
@@ -45,7 +45,7 @@ class GenerativeNetwork():
               kernel_size: Tuple[int, int] = (4, 4),
               strides: Tuple[int, int] = (2, 2),
               dropout_rate: Optional[float] = None,
-              output_activation='tanh',
+              output_activation: str = 'tanh',
               compile: bool = True) -> Model:
         input = Input(shape=input_shape)
 
