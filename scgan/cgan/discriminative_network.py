@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 from keras.engine import Layer
 from keras.initializers import RandomNormal
-from keras.layers import BatchNormalization
+from keras.layers import BatchNormalization, GaussianNoise
 from keras.layers import Input, Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv2D
@@ -30,10 +30,12 @@ class DiscriminativeNetwork():
               strides: Tuple[int, int] = (2, 2),
               lrelu_alpha: float = 0.2,
               momentum: Optional[float] = 0.99,
+              noise_stdev: float = 0.01,
               compile: bool = True) -> Model:
-        input = Input(shape=input_shape)
-        condition = Input(shape=condition_shape)
-        combination = Concatenate(axis=-1)([input, condition])
+        target = Input(shape=input_shape, name='satellite_image')
+        noise = GaussianNoise(noise_stdev)(target)
+        condition = Input(shape=condition_shape, name='condition_mask')
+        combination = Concatenate(axis=-1)([noise, condition])
 
         d = self.conv2d(combination, init_filters, kernel_size, strides, lrelu_alpha, momentum=None)
         d = self.conv2d(d, init_filters * 2, kernel_size, strides, lrelu_alpha, momentum)
@@ -41,8 +43,7 @@ class DiscriminativeNetwork():
         d = self.conv2d(d, init_filters * 8, kernel_size, strides, lrelu_alpha, momentum)
         output = Conv2D(1, kernel_size=kernel_size, strides=strides, padding='same', activation='sigmoid')(d)
 
-        model = Model([input, condition], output, name='discriminator')
-
+        model = Model([target, condition], output, name='discriminator')
         if compile:
             model.compile(optimizer=self.optimizer, loss='binary_crossentropy', metrics=['accuracy'],
                           loss_weights=[0.5])

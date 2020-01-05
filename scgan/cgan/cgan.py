@@ -23,11 +23,12 @@ class CGAN():
         self.input_shape = input_shape
         self.condition_shape = condition_shape
 
-        condition = Input(shape=condition_shape)
+        condition = Input(shape=condition_shape, name='condition_mask')
         artificial = self.generative_network_model(condition)
         frozen_discriminative_network_model = Model(
             inputs=discriminative_network_model.inputs,
-            outputs=discriminative_network_model.outputs
+            outputs=discriminative_network_model.outputs,
+            name='discriminator'
         )
         frozen_discriminative_network_model.trainable = False
         discrimination_result = frozen_discriminative_network_model([artificial, condition])

@@ -12,5 +12,5 @@ if __name__ == '__main__':
                                            landcover_mask_shape=(1, 256, 256), feature_range=(-1, 1))
     plotter = Plotter(generator_model, data_generator, sub_dir='predict')
 
-    plotter.predict_and_plot_images(batch=10)
+    plotter.predict_and_plot_images(batch=50)
     print('Finished prediction using %s model' % generator_model.name)

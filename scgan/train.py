@@ -22,6 +22,6 @@ if __name__ == '__main__':
                         compile=False, dropout_rate=0.5, kernel_size=(7, 7))
     cgan = CGAN(data_generator, dn_model, gn_model, input_shape=satellite_image_shape, condition_shape=mask_shape)
 
-    history = cgan.fit(epochs=250, batch=20)
+    history = cgan.fit(epochs=200, batch=50)
 
     print('Sentinel CGAN has been fitted')

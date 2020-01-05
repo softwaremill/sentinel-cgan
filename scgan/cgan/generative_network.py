@@ -34,7 +34,7 @@ class GenerativeNetwork():
         up_conv = Conv2DTranspose(filters, kernel_size, strides=strides, padding='same',
                                   kernel_initializer=RandomNormal(stddev=0.02))(initial_layer)
         up_conv = BatchNormalization(momentum=momentum)(up_conv) if momentum else up_conv
-        up_conv = Dropout(dropout_rate)(up_conv, training=True) if dropout_rate else up_conv
+        up_conv = Dropout(dropout_rate)(up_conv) if dropout_rate else up_conv
         up_conv = Concatenate()([up_conv, skipped_layer])
         up_conv = Activation(activation)(up_conv)
         return up_conv
@@ -47,7 +47,7 @@ class GenerativeNetwork():
               dropout_rate: Optional[float] = None,
               output_activation: str = 'tanh',
               compile: bool = True) -> Model:
-        input = Input(shape=input_shape)
+        input = Input(shape=input_shape, name='condition_mask')
 
         d1 = self.conv2d(input, init_filters, kernel_size, strides, momentum=None)
         d2 = self.conv2d(d1, init_filters * 2, kernel_size, strides)

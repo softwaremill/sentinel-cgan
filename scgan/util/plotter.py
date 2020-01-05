@@ -74,7 +74,7 @@ class Plotter:
         plt.close()
 
     def predict_and_plot_images(self, batch=1):
-        real_satellite_images, mask_images = next(self.data_generator.load(batch))
+        real_satellite_images, mask_images = next(self.data_generator.load(batch, purpose=Purpose.TEST))
         artificial_satellite_images = self.model.predict(mask_images)
 
         def plot(image, image_id):
