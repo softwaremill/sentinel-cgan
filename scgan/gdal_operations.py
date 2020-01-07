@@ -5,7 +5,7 @@ import pandas as pd
 if __name__ == '__main__':
     dir = './'
 
-    grid = os.path.join(dir, 'grid_c.shp')
+    grid = os.path.join(dir, 'grid.shp')
     sentinel = os.path.join(dir, 'sentinel.tif')
     land_cover = os.path.join(dir, 'land_cover.tif')
 
