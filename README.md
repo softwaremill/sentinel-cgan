@@ -2,7 +2,7 @@
 
 ![Epoch result](docs/header.png)
 
-Data argumentation facility used during [modifiable areal](https://en.wikipedia.org/wiki/Modifiable_areal_unit_problem) unit problem research project. Read more in our article on Medium - [Generative adversarial networks in satellite image datasets augmentation.]()
+Data argumentation facility used during [modifiable areal](https://en.wikipedia.org/wiki/Modifiable_areal_unit_problem) unit problem research project. Read more in our article on Medium - [Generative adversarial networks in satellite image datasets augmentation.](https://blog.softwaremill.com/generative-adversarial-networks-in-satellite-image-datasets-augmentation-b7045d2f51ab)
 
 ## Usage
 
